@@ -79,23 +79,6 @@ The non-linear attribution results translate directly into concrete risk managem
 
 ---
 
-## 🎨 5. System Visual Showcase & Production Dashboard
-
-The framework delivers both interactive data streams and embedded visual showcases. To monitor live model inferences and examine dynamic SHAP relationships, the entire pipeline is synthesized within a production-ready **Streamlit-based Financial Dashboard**.
-
-### 📊 Web-Based Dynamic Risk Management Interface
-The interactive dashboard provides real-time model directional metrics, simulated treasury cost savings, and aligned multi-market price tracking.
-
-![Quant Portfolio System Showcase](dashboards/system_showcase.png)
-
-### 🧠 White-Box TreeSHAP Attribution Outputs
-These visual explanations act as the mathematical foundation behind our multi-tier hedging matrix, decoupling black-box tendencies into strategic assets:
-
-#### A. Global Feature Importance (Macro Ranking)
-![SHAP Global Importance](dashboards/shap_global.png)
-
-#### B. Asymmetric Tail Risk Density Distribution
-![SHAP Density Distribution](dashboards/shap_density.png)
 
 ---
 
