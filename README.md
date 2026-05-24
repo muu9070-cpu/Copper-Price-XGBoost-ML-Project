@@ -182,7 +182,9 @@ SHAP visualizations were used to explain model behavior and identify the most in
 ├── data_integration.sql               # SQL data cleaning & integration
 └── Copper_Price_Analysis.ipynb        # Model training and analysis notebook
 
+```
 ---
+
 ## ⚙️ Tech Stack
 
 - Python
