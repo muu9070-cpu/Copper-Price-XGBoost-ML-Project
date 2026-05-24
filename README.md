@@ -1,27 +1,55 @@
 # 📊 Global Commodity & Financial Market Correlation Analysis & Forecasting
 
-An enterprise-grade quantitative research framework designed to bridge the gap between financial data engineering and non-linear machine learning. This framework integrates multi-source data sourcing via MySQL, predictive regime modeling via XGBoost, and white-box causal feature attribution through SHAP (SHapley Additive exPlanations) to quantify cross-market macro drivers behind LME Copper price fluctuations, delivering a data-driven risk hedging decision support system.
+This project analyzes the relationship between macroeconomic indicators and LME copper prices using machine learning and financial market data.
+
+The project combines:
+- SQL-based financial data processing,
+- XGBoost regression modeling,
+- SHAP feature interpretation,
+- and Streamlit dashboard visualization.
+
+The objective is to identify important market drivers behind copper price movements and build an interpretable forecasting framework for financial market analysis.
 
 ---
 
-## 📌 1. Business Decomposition & Metrics Architecture
+## 📌 1. Project Background & Feature Design
 
-* **Business Pain Point**
-  Commodity assets (e.g., LME Copper) are highly sensitive to global macroeconomic shifts. Traditional linear investment models (e.g., OLS or VAR) fail to capture asymmetric price movements, non-linear risk accelerations, and structural macro regime shifts during high-volatility periods, exposing corporate treasuries and asset managers to unhedged tail risks.
-* **Quantitative Metrics Design**
-  * **Target Variable (Y)**: `Copper_Price` (LME Copper Close) — The benchmark asset pricing metric, serving as a proxy for global physical economic activity ("Dr. Copper").
-  * **Numeraire / Liquidity Metric (X1)**: `DXY_Index` (US Dollar Index) — Captures global fiat liquidity, Fed monetary policy tightening/easing, and currency denominator effects.
-  * **Risk Appetite Metric (X2)**: `SP500_Index` (S&P 500 Index) — Represents broad equity market risk sentiment and global macroeconomic demand growth expectations.
-  * **Regional Supply Chain Metric (X3)**: `KLCI_Index` (FTSE Bursa Malaysia KLCI) — Reflects capital flows and supply chain stability indicators across critical manufacturing hubs in Southeast Asia.
+Commodity prices are influenced by multiple macroeconomic factors such as currency fluctuations, equity market sentiment, and global supply chain conditions.
 
+This project focuses on analyzing how different financial indicators affect LME copper prices and evaluates their predictive power using machine learning techniques.
+
+### Selected Features
+
+| Feature | Description |
+|---|---|
+| `Copper_Price` | LME copper closing price (target variable) |
+| `DXY_Index` | US Dollar Index, representing global liquidity conditions |
+| `SP500_Index` | S&P 500 Index, representing market sentiment |
+| `KLCI_Index` | FTSE Bursa Malaysia KLCI Index, reflecting regional market activity |
+| `copper_price_t1` | Previous-day copper price used for lag feature engineering |
 ---
 
-## 🛠️ 2. Production SQL ETL & Temporal Cross-Market Alignment
+## 🛠️ 2. Data Cleaning & SQL ETL
 
-* **Data Governance & Conflict Mitigation**
-  High-frequency and daily financial time-series data from heterogeneous global markets natively suffer from severe temporal misalignments due to conflicting trading calendars, diverse time zones, and asynchronous regional bank holidays. 
-* **Database-Layer Engineering**
-  Rather than relying on fragile downstream script patching (such as row dropping in Pandas), an automated SQL ETL pipeline was engineered to standardize schema structures and enforce absolute temporal alignment. By leveraging explicit date formatting (`STR_TO_DATE`) and executing strict multi-table `INNER JOIN` operations, holiday-induced null values and asynchronous data noise were eliminated at the database layer before ingestion.
+Financial datasets collected from different global markets often contain:
+- inconsistent date formats,
+- missing trading days,
+- and mismatched timestamps across exchanges.
+
+To improve data quality before modeling, SQL was used to clean and align multi-source financial datasets.
+
+Main preprocessing tasks included:
+- standardizing date formats using `STR_TO_DATE()`,
+- merging datasets with `INNER JOIN`,
+- removing null values caused by non-trading days,
+- and generating lag features with SQL window functions.
+
+### 🔧 Key SQL Techniques
+
+- `STR_TO_DATE()`
+- `INNER JOIN`
+- `LAG() OVER()`
+- Time-series feature engineering
 
 ### 🗄️ Temporal Alignment Core Pipeline (`data_integration.sql`)
 
@@ -52,63 +80,127 @@ ORDER BY c.Trade_Date ASC;
 ```
 ---
 
-## 🧠 3. White-Box Modeling & Non-Linear Feature Attribution
+## 🧠 3. Machine Learning Modeling & Feature Interpretation
 
-To completely bypass the "black-box" dilemma of advanced machine learning, this project couples an optimized XGBoost Regressor with SHAP (SHapley Additive exPlanations) summary frameworks to extract mathematical, causal macroeconomic insights:
+An XGBoost regression model was trained to predict copper prices using macroeconomic and financial market indicators.
 
-* **Asset Momentum Dominance**: Feature attribution identifies `copper_price_t1` (the lagged $t-1$ asset price) as the absolute dominant predictor. This quantitatively validates the strong short-term trend inertia and momentum effect inherent in major commodity contracts.
-* **Asymmetric Suppression via the US Dollar Index**: The `DXY_Index` demonstrates a severe non-linear impact. SHAP attribution explicitly uncovers an asymmetric risk profile: while a low or stable DXY marginally supports copper prices, any upward breakout or sudden spike in the dollar thrusts SHAP values deep into negative territory, proving a non-linear acceleration of downward pricing pressure during global dollar liquidity squeezes.
-* **Model Validation Rigor**: The framework completely rejects traditional K-Fold cross-validation to eliminate temporal data leakage. Backtested against a strict **Out-of-Time (OOT) rolling validation set** (80% historical training / 20% blind test), the optimized XGBoost model with robust early stopping achieved a **Directional Accuracy of 78.4%** on macro turning points, outperforming the standard linear benchmark (OLS) by **+11.4%** and reducing Root Mean Squared Error (RMSE) by **14.2%**.
+To improve model interpretability, SHAP (SHapley Additive exPlanations) was used to analyze feature importance and understand how different variables influenced model predictions.
+
+### 📌 Key Findings
+
+- `copper_price_t1` (previous-day copper price) was the most important predictive feature, showing strong short-term momentum effects in commodity prices.
+
+- `DXY_Index` showed a negative relationship with copper prices. Higher dollar index values were generally associated with lower predicted copper prices.
+
+- Equity market indicators such as the `SP500_Index` also contributed to price movement predictions and reflected broader market sentiment.
+
+### 📊 Model Evaluation
+
+To avoid data leakage in time-series forecasting, the model was evaluated using chronological train-test splitting instead of random K-Fold validation.
+
+Training setup:
+- 80% historical data for training
+- 20% data for testing
+
+Evaluation results:
+- Directional Accuracy: 78.4%
+- Lower RMSE compared with baseline linear regression
+- Better predictive performance during volatile market periods
 
 ---
 
-## 📈 4. Actionable Multi-Tier Hedging Matrix & Quantifiable Lift
+## 📈 4. Business Insights & Practical Applications
 
-The non-linear attribution results translate directly into concrete risk management and trading operational playbooks, switching from retrospective analytics to active asset protection:
+The model results were used to analyze how macroeconomic indicators may influence commodity price movements and support financial market interpretation.
 
-### 📊 Strategic Tactical Advice Lifecycle Matrix
+### 📌 Key Insights
 
-| Operational Segment | Macro Risk Threshold Trigger | Target Asset | Operational Playbook (Actionable Advice) |
-| :--- | :--- | :--- | :--- |
-| **Multi-Asset Portfolio** | `DXY_Index` > 103 & VIX Spike | Cyclical Metals Longs | **Immediate Exposure Optimization:** Mandate a systematic 15% to 20% reduction in cyclical long exposures or execute defensive put-option overlays to hedge impending non-linear drawdowns. |
-| **Industrial Supply Chain** | `DXY_Index` Macro Turning Point | Physical Spot Orders | **Dynamic Exposure Acceleration:** Capitalize on SHAP "blue cluster" regions (weakening DXY/cooling rate-hike expectations); accelerate lock-in physical spot orders, reducing procurement noise. |
+| Indicator | Observation | Potential Market Signal |
+|---|---|---|
+| `DXY_Index` | Rising dollar index was associated with lower copper prices | Strong USD may reduce commodity demand sentiment |
+| `SP500_Index` | Positive equity market performance often aligned with stronger copper prices | Market optimism may support industrial demand |
+| `copper_price_t1` | Previous-day prices showed strong predictive influence | Commodity prices displayed short-term momentum effects |
 
-### 🎯 Quantifiable Financial Impact
-* **Portfolio Hedging Results**: Backtesting the Systematic Risk-Trigger Strategy over historical macro shock periods successfully mitigated **64% of tail-risk drawdowns**, preserving portfolio capital velocity.
-* **Corporate Treasury Impact**: Implemented within a simulated industrial consumer workflow handling quarterly electrolytic copper procurement, the dynamic exposure management framework reduced quarterly spot procurement premium noise by **3.5% to 5.2%**, yielding an estimated cost-saving benefit of **112,400 RMB per 500-ton procurement lot**.
+### 📊 Practical Applications
 
+The project dashboard can be used to:
+- monitor macroeconomic market trends,
+- visualize feature importance through SHAP analysis,
+- compare predicted and actual copper prices,
+- and support financial market analysis and forecasting research.
+
+### 🎯 Model Performance Summary
+
+- Directional Accuracy: 78.4%
+- Improved RMSE compared with baseline linear regression
+- Better prediction stability during volatile market conditions
 ---
 
-## 🎨 5. System Visual Showcase & Production Dashboard
+## 📊 5. Dashboard Visualization & Model Interpretation
 
-The framework delivers both interactive data streams and embedded visual showcases. To monitor live model inferences and examine dynamic SHAP relationships, the entire pipeline is synthesized within a production-ready **Streamlit-based Financial Dashboard**.
+A Streamlit dashboard was developed to visualize financial market trends, model predictions, and SHAP feature importance.
 
-### 📊 Web-Based Dynamic Risk Management Interface
-The interactive dashboard provides real-time model directional metrics, simulated treasury cost savings, and aligned multi-market price tracking.
+The dashboard allows users to:
+- explore copper price movements,
+- compare predicted and actual prices,
+- monitor macroeconomic indicators,
+- and interpret model outputs interactively.
 
-![Quant Portfolio System Showcase](dashboards/system_showcase.png)
+### 🖥️ Streamlit Dashboard Interface
 
-### 🧠 White-Box TreeSHAP Attribution Outputs
-These visual explanations act as the mathematical foundation behind our multi-tier hedging matrix, decoupling black-box tendencies into strategic assets:
+The dashboard integrates:
+- time-series visualization,
+- prediction results,
+- and feature importance analysis.
 
-#### A. Global Feature Importance (Macro Ranking)
+![Financial Dashboard Showcase](dashboards/system_showcase.png)
+
+### 📌 SHAP Feature Interpretation
+
+SHAP visualizations were used to explain model behavior and identify the most influential features affecting copper price predictions.
+
+#### A. Global Feature Importance
+
 ![SHAP Global Importance](dashboards/shap_global.png)
 
-#### B. Asymmetric Tail Risk Density Distribution
+#### B. SHAP Value Distribution
+
 ![SHAP Density Distribution](dashboards/shap_density.png)
 
 ---
 
-## 📂 6. Repository Architecture & Quick Start
+## 📂 6. Repository Structure
 
 ### 🌲 Project Structure
 
 ```plaintext
-├── Dataset/                           # Local data repository
-├── dashboards/                        # Visual analytics module
-│   ├── app.py                         # Streamlit production dashboard source
-│   ├── data_model_predictions.csv     # Model inference stream
-│   └── data_shap_values.csv           # TreeSHAP values matrix
-├── data_integration.sql               # Production SQL ETL alignment pipeline
-└── Copper_Price_Analysis.ipynb        # Core ML training & validation workspace
+├── Dataset/                           # Financial market datasets
+├── dashboards/                        # Streamlit dashboard module
+│   ├── app.py                         # Dashboard application
+│   ├── data_model_predictions.csv     # Model prediction results
+│   └── data_shap_values.csv           # SHAP output values
+├── data_integration.sql               # SQL data cleaning & integration
+└── Copper_Price_Analysis.ipynb        # Model training and analysis notebook
 
+---
+## ⚙️ Tech Stack
+
+- Python
+- Pandas
+- NumPy
+- MySQL
+- XGBoost
+- SHAP
+- Streamlit
+- Matplotlib
+
+---
+
+## 🔄 Workflow
+
+1. Collect financial market datasets
+2. Clean and align time-series data using SQL
+3. Perform feature engineering
+4. Train XGBoost regression model
+5. Interpret model outputs using SHAP
+6. Build Streamlit dashboard for visualization
